@@ -172,7 +172,7 @@ def main():
             options.vgg_path
         ]
 
-        start_time = time_time()
+        start_time = time.time()
         print('start_time: %f' % (start_time))
 
         for preds, losses, i, epoch in optimize(*args, **kwargs):
