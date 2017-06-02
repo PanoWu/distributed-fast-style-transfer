@@ -142,59 +142,64 @@ def main():
     if options.job_name == "ps":
         server.join()
     elif options.job_name == "worker":
-        style_target = get_img(options.style)
-        if not options.slow:
-            content_targets = _get_files(options.train_path)
-        elif options.test:
-            content_targets = [options.test]
 
-        kwargs = {
-            "slow":options.slow,
-            "epochs":options.epochs,
-            "print_iterations":options.checkpoint_iterations,
-            "batch_size":options.batch_size,
-            "save_path":os.path.join(options.checkpoint_dir,'fns.ckpt'),
-            "learning_rate":options.learning_rate
-        }
+        with tf.device(tf.train.replica_device_setter(
+            worker_device="/job:worker/task:%d" % options.task_index,
+            cluster=cluster)):
 
-        if options.slow:
-            if options.epochs < 10:
-                kwargs['epochs'] = 1000
-            if options.learning_rate < 1:
-                kwargs['learning_rate'] = 1e1
+            style_target = get_img(options.style)
+            if not options.slow:
+                content_targets = _get_files(options.train_path)
+            elif options.test:
+                content_targets = [options.test]
 
-        args = [
-            content_targets,
-            style_target,
-            options.content_weight,
-            options.style_weight,
-            options.tv_weight,
-            options.vgg_path
-        ]
+            kwargs = {
+                "slow":options.slow,
+                "epochs":options.epochs,
+                "print_iterations":options.checkpoint_iterations,
+                "batch_size":options.batch_size,
+                "save_path":os.path.join(options.checkpoint_dir,'fns.ckpt'),
+                "learning_rate":options.learning_rate
+            }
 
-        start_time = time.time()
-        print('start_time: %f' % (start_time))
+            if options.slow:
+                if options.epochs < 10:
+                    kwargs['epochs'] = 1000
+                if options.learning_rate < 1:
+                    kwargs['learning_rate'] = 1e1
 
-        for preds, losses, i, epoch in optimize(*args, **kwargs):
-            style_loss, content_loss, tv_loss, loss = losses
+            args = [
+                content_targets,
+                style_target,
+                options.content_weight,
+                options.style_weight,
+                options.tv_weight,
+                options.vgg_path
+            ]
 
-            print('Epoch %d, Iteration: %d, Loss: %s' % (epoch, i, loss))
-            to_print = (style_loss, content_loss, tv_loss)
-            print('style: %s, content:%s, tv: %s' % to_print)
-            print('last_time: %f' % (time.time() - start_time))
-            if options.test:
-                assert options.test_dir != False
-                preds_path = '%s/%s_%s.png' % (options.test_dir,epoch,i)
-                if not options.slow:
-                    ckpt_dir = os.path.dirname(options.checkpoint_dir)
-                    evaluate.ffwd_to_img(options.test,preds_path,
-                                         options.checkpoint_dir)
-                else:
-                    save_img(preds_path, img)
-        ckpt_dir = options.checkpoint_dir
-        cmd_text = 'python evaluate.py --checkpoint %s ...' % ckpt_dir
-        print("Training complete. For evaluation:\n    `%s`" % cmd_text)
-        print("total_last_time: %f" % (time.time() - start_time))
+            start_time = time.time()
+            print('start_time: %f' % (start_time))
+
+            for preds, losses, i, epoch in optimize(*args, **kwargs):
+                style_loss, content_loss, tv_loss, loss = losses
+
+                print('Epoch %d, Iteration: %d, Loss: %s' % (epoch, i, loss))
+                to_print = (style_loss, content_loss, tv_loss)
+                print('style: %s, content:%s, tv: %s' % to_print)
+                print('last_time: %f' % (time.time() - start_time))
+                if options.test:
+                    assert options.test_dir != False
+                    preds_path = '%s/%s_%s.png' % (options.test_dir,epoch,i)
+                    if not options.slow:
+                        ckpt_dir = os.path.dirname(options.checkpoint_dir)
+                        evaluate.ffwd_to_img(options.test,preds_path,
+                                             options.checkpoint_dir)
+                    else:
+                        save_img(preds_path, img)
+            ckpt_dir = options.checkpoint_dir
+            cmd_text = 'python evaluate.py --checkpoint %s ...' % ckpt_dir
+            print("Training complete. For evaluation:\n    `%s`" % cmd_text)
+            print("total_last_time: %f" % (time.time() - start_time))
 
 if __name__ == '__main__':
     main()
