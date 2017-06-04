@@ -92,6 +92,13 @@ def optimize(server, task_index, content_targets, style_target, content_weight, 
 
         # overall loss
         train_step = tf.train.AdamOptimizer(learning_rate).minimize(loss)
+        '''
+        train_step = tf.train.SyncReplicasOptimizer(tf.train.AdamOptimizer(learning_rate),
+                                                    replicas_to_aggregate=len(workers),
+                                                    replica_id=task_index,
+                                                    total_num_replicas=len(workers),
+                                                    use_locking=True).minimize(loss)
+        '''
         sess.run(tf.global_variables_initializer())
         import random
         uid = random.randint(1, 100)
