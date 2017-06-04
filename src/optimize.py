@@ -27,8 +27,8 @@ def optimize(server, task_index, content_targets, style_target, content_weight, 
     style_shape = (1,) + style_target.shape
     print(style_shape)
 
-    sv = tf.train.Supervisor(is_chief=(task_index == 0), init_op=tf.global_variables_initializer())
-    sv.prepare_or_wait_for_session(server.target)
+#    sv = tf.train.Supervisor(is_chief=(task_index == 0), init_op=tf.global_variables_initializer())
+#    sv.prepare_or_wait_for_session(server.target)
 
     # precompute style features
     with tf.Graph().as_default(), tf.Session() as sess:
