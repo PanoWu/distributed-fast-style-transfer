@@ -169,6 +169,8 @@ def main():
                     kwargs['learning_rate'] = 1e1
 
             args = [
+                server,
+                task_index,
                 content_targets,
                 style_target,
                 options.content_weight,

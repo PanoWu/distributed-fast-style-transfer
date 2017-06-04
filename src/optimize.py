@@ -10,7 +10,7 @@ CONTENT_LAYER = 'relu4_2'
 DEVICES = 'CUDA_VISIBLE_DEVICES'
 
 # np arr, np arr
-def optimize(content_targets, style_target, content_weight, style_weight,
+def optimize(server, task_index, content_targets, style_target, content_weight, style_weight,
              tv_weight, vgg_path, epochs=2, print_iterations=1000,
              batch_size=4, save_path='saver/fns.ckpt', slow=False,
              learning_rate=1e-3, debug=False):
@@ -27,8 +27,10 @@ def optimize(content_targets, style_target, content_weight, style_weight,
     style_shape = (1,) + style_target.shape
     print(style_shape)
 
+    sv = tf.train.Supervisor(is_chief=(task_index == 0), init_op=tf.global_variables_initializer())
+
     # precompute style features
-    with tf.Graph().as_default(), tf.Session() as sess:
+    with tf.Graph().as_default(), sv.prepare_or_wait_for_session(server.target) as sess:
         style_image = tf.placeholder(tf.float32, shape=style_shape, name='style_image')
         style_image_pre = vgg.preprocess(style_image)
         net = vgg.net(vgg_path, style_image_pre)
@@ -39,7 +41,7 @@ def optimize(content_targets, style_target, content_weight, style_weight,
             gram = np.matmul(features.T, features) / features.size
             style_features[layer] = gram
 
-    with tf.Graph().as_default(), tf.Session() as sess:
+    with tf.Graph().as_default(), sv.prepare_or_wait_for_session(server.target) as sess:
         X_content = tf.placeholder(tf.float32, shape=batch_shape, name="X_content")
         X_pre = vgg.preprocess(X_content)
 
