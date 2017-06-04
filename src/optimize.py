@@ -28,9 +28,10 @@ def optimize(server, task_index, content_targets, style_target, content_weight, 
     print(style_shape)
 
     sv = tf.train.Supervisor(is_chief=(task_index == 0), init_op=tf.global_variables_initializer())
+    sv.prepare_or_wait_for_session(server.target)
 
     # precompute style features
-    with tf.Graph().as_default(), sv.prepare_or_wait_for_session(server.target) as sess:
+    with tf.Graph().as_default(), tf.Session() as sess:
         style_image = tf.placeholder(tf.float32, shape=style_shape, name='style_image')
         style_image_pre = vgg.preprocess(style_image)
         net = vgg.net(vgg_path, style_image_pre)
@@ -41,7 +42,7 @@ def optimize(server, task_index, content_targets, style_target, content_weight, 
             gram = np.matmul(features.T, features) / features.size
             style_features[layer] = gram
 
-    with tf.Graph().as_default(), sv.prepare_or_wait_for_session(server.target) as sess:
+    with tf.Graph().as_default(), tf.Session() as sess:
         X_content = tf.placeholder(tf.float32, shape=batch_shape, name="X_content")
         X_pre = vgg.preprocess(X_content)
 
