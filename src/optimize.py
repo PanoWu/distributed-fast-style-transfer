@@ -90,13 +90,16 @@ def optimize(workers, server, task_index, content_targets, style_target, content
 
         loss = content_loss + style_loss + tv_loss
 
+        global_step = tf.get_variable('global_step', [], 
+                                      initializer = tf.constant_initializer(0),
+                                      trainable = false)
         # overall loss
-    #    train_step = tf.train.AdamOptimizer(learning_rate).minimize(loss)
+        # train_step = tf.train.AdamOptimizer(learning_rate).minimize(loss)
         
         train_step = tf.train.SyncReplicasOptimizer(tf.train.AdamOptimizer(learning_rate),
                                                     replicas_to_aggregate=len(workers),
                                                     total_num_replicas=len(workers),
-                                                    use_locking=True).minimize(loss)
+                                                    use_locking=True).minimize(loss, global_step=global_step)
         
         sess.run(tf.global_variables_initializer())
         import random
