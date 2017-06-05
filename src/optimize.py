@@ -95,7 +95,6 @@ def optimize(workers, server, task_index, content_targets, style_target, content
         
         train_step = tf.train.SyncReplicasOptimizer(tf.train.AdamOptimizer(learning_rate),
                                                     replicas_to_aggregate=len(workers),
-                                                    replica_id=task_index,
                                                     total_num_replicas=len(workers),
                                                     use_locking=True).minimize(loss)
         
