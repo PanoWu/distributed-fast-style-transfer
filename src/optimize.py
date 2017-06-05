@@ -123,7 +123,8 @@ def optimize(workers, server, task_index, content_targets, style_target, content
                    X_content:X_batch
                 }
 
-                train_step.run(feed_dict=feed_dict)
+                #train_step.run(feed_dict=feed_dict)
+                sess.run(train_step, feed_dict=feed_dict)
                 end_time = time.time()
                 delta_time = end_time - start_time
                 if debug:
