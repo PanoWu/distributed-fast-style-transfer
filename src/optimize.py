@@ -91,8 +91,8 @@ def optimize(workers, server, task_index, content_targets, style_target, content
         loss = content_loss + style_loss + tv_loss
 
         global_step = tf.get_variable('global_step', [], 
-                                      initializer = tf.constant_initializer(0),
-                                      trainable = false)
+                                      initializer=tf.constant_initializer(0),
+                                      trainable=False)
         # overall loss
         # train_step = tf.train.AdamOptimizer(learning_rate).minimize(loss)
         
