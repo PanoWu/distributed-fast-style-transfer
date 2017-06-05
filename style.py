@@ -169,6 +169,7 @@ def main():
                     kwargs['learning_rate'] = 1e1
 
             args = [
+                worker_hosts,
                 server,
                 options.task_index,
                 content_targets,

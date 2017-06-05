@@ -10,7 +10,7 @@ CONTENT_LAYER = 'relu4_2'
 DEVICES = 'CUDA_VISIBLE_DEVICES'
 
 # np arr, np arr
-def optimize(server, task_index, content_targets, style_target, content_weight, style_weight,
+def optimize(worker, server, task_index, content_targets, style_target, content_weight, style_weight,
              tv_weight, vgg_path, epochs=2, print_iterations=1000,
              batch_size=4, save_path='saver/fns.ckpt', slow=False,
              learning_rate=1e-3, debug=False):
@@ -91,14 +91,14 @@ def optimize(server, task_index, content_targets, style_target, content_weight, 
         loss = content_loss + style_loss + tv_loss
 
         # overall loss
-        train_step = tf.train.AdamOptimizer(learning_rate).minimize(loss)
-        '''
+    #    train_step = tf.train.AdamOptimizer(learning_rate).minimize(loss)
+        
         train_step = tf.train.SyncReplicasOptimizer(tf.train.AdamOptimizer(learning_rate),
                                                     replicas_to_aggregate=len(workers),
                                                     replica_id=task_index,
                                                     total_num_replicas=len(workers),
                                                     use_locking=True).minimize(loss)
-        '''
+        
         sess.run(tf.global_variables_initializer())
         import random
         uid = random.randint(1, 100)
